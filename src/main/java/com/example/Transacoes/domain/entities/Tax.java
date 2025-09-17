@@ -18,8 +18,8 @@ public class Tax {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     public Long id;
-    public Long min;
-    public Long max;
+    public Long minValue;
+    public Long maxValue;
     public BigDecimal moneyTax;
     public Float percentageTax;
 }
