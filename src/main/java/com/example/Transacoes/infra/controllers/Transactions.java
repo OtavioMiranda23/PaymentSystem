@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.math.BigDecimal;
+import java.util.HashMap;
 
 @RestController()
 @RequestMapping("/api/transactions")
@@ -22,13 +23,15 @@ public class Transactions {
     private CreateTransaction createTransaction;
 
     @PostMapping
-    public ResponseEntity<Transaction> create(@RequestBody TransactionDto transactionDto) {
+    public ResponseEntity<?> create(@RequestBody TransactionDto transactionDto) {
         try {
             BigDecimal taxedAmount = calculateTax.execute(transactionDto.amount(), transactionDto.toFulfillAt());
             Transaction transaction = createTransaction.execute(transactionDto, taxedAmount );
             return ResponseEntity.ok().body(transaction);
         } catch (Exception e) {
-            return ResponseEntity.notFound().build();
+            HashMap<String, String> error = new HashMap<>();
+            error.put("message", e.getMessage());
+            return ResponseEntity.badRequest().body(error);
         }
     }
 }

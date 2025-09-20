@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 @Service
 public class CalculateTax {
@@ -16,18 +17,15 @@ public class CalculateTax {
 
     public BigDecimal execute(BigDecimal amount ,LocalDateTime toFulfillAt) throws Exception {
         //buscar a tabela no banco
-        this.taxRepository.
-        var taxTable = new Tax();
-        long minDays = taxTable.getMinValue();
-        long maxDays = taxTable.getMaxValue();
-        BigDecimal moneyTax = taxTable.getMoneyTax();
-        double percentageTax = taxTable.getPercentageTax();
-        Duration transferenceDays = Duration.between(LocalDateTime.now(), toFulfillAt);
-        if (transferenceDays.toDays() >= minDays && transferenceDays.toDays() <= maxDays) {
-            return this.calculateFinalAmount(amount, moneyTax, percentageTax);
-        } else {
+        Duration intervalDuration = Duration.between(LocalDateTime.now(), toFulfillAt);
+        long daysInterval = intervalDuration.toDays();
+        Optional<Tax> _tax = this.taxRepository.findTaxByDays(daysInterval);
+        if (_tax.isEmpty()) {
             throw new Exception("Transferência não permitida, pois não foi encontrada data aplicável");
         }
+        var tax = _tax.get();
+        BigDecimal finalAmount = this.calculateFinalAmount(amount, tax.getMoneyTax(), tax.getPercentageTax());
+        return finalAmount;
     }
 
     private BigDecimal calculateFinalAmount(

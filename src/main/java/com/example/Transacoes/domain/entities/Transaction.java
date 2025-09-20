@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.cglib.core.Local;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -36,10 +37,6 @@ public class Transaction {
 
    @NotNull
    @Column(nullable = false)
-   private LocalDateTime fulfilledAt;
-
-   @NotNull
-   @Column(nullable = false)
    private LocalDateTime createdAt;
    private Float tax;
 
@@ -66,8 +63,8 @@ public class Transaction {
       this.toFulfilledAt = toFulfilledAt;
       if (tax < 0) {
          throw new IllegalArgumentException("A taxa precisa ser maior que 0");
-
       }
       this.tax = tax;
+      this.createdAt = LocalDateTime.now();
    }
 }
