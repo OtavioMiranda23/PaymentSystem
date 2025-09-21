@@ -15,7 +15,7 @@ import java.util.HashMap;
 
 @RestController()
 @RequestMapping("/api/transactions")
-public class Transactions {
+public class TransactionsController {
     @Autowired
     private CalculateTax calculateTax;
 

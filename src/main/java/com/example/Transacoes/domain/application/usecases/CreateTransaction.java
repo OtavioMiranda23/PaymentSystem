@@ -17,13 +17,12 @@ public class CreateTransaction {
             TransactionDto transactionDto,
             BigDecimal calculatedAmount
     ) {
-        BigDecimal tax = calculatedAmount.subtract(transactionDto.amount());
         Transaction transactionRaw = new Transaction(
                 transactionDto.sender(),
                 transactionDto.recipient(),
                 transactionDto.amount(),
                 transactionDto.toFulfillAt(),
-                tax.floatValue()
+                calculatedAmount
         );
         Transaction transaction = this.transactionRepository.save(transactionRaw);
         return transaction;

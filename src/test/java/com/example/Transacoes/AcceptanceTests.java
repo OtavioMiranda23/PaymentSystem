@@ -6,6 +6,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import static org.junit.jupiter.api.Assertions.*;
 import org.json.JSONObject;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.http.HttpClient;
@@ -40,6 +41,20 @@ class AcceptanceTests {
 		var jsonResponse = new JSONObject(responseBody);
 		String responseId = jsonResponse.getString("id");
 		assertNotNull(responseId);
+		String responseSender = jsonResponse.getString("sender");
+		assertEquals("otavio@gmail.com", responseSender);
+		String responseRecipient = jsonResponse.getString("recipient");
+		assertEquals("joao@gmail.com", responseRecipient);
+		String responseAmount = jsonResponse.getString("amount");
+		assertEquals(new BigDecimal("10.0"), new BigDecimal(responseAmount));
+		String responseToFulfilledAt =  jsonResponse.getString("toFulfilledAt");
+		assertEquals(toFulfilledAt, LocalDateTime.parse(responseToFulfilledAt));
+		String responseCreatedAt =  jsonResponse.getString("createdAt");
+		assertEquals(LocalDateTime.now().toString().split("T")[0], responseCreatedAt.split("T")[0]);
+		String responseTaxedAmount = jsonResponse.getString("taxedAmount");
+		assertEquals(new BigDecimal("13.325"), new BigDecimal(responseTaxedAmount));
+
+
 	}
 
 	@Test

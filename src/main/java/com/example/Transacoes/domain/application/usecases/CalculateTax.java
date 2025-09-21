@@ -34,8 +34,9 @@ public class CalculateTax {
             double percentageTax
             ) {
         BigDecimal sumAcrec = amount.add(moneyTax);
-        var taxCalculated = sumAcrec.divide(new BigDecimal(percentageTax));
-        var finalAmount = amount.add(taxCalculated);
+        var percentageTaxFormated = percentageTax / 100;
+        var taxCalculated = sumAcrec.multiply(BigDecimal.valueOf(percentageTaxFormated));
+        var finalAmount = sumAcrec.add(taxCalculated);
         return finalAmount;
     }
 }

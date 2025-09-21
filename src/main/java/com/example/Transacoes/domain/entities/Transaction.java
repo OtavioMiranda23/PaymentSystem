@@ -38,14 +38,14 @@ public class Transaction {
    @NotNull
    @Column(nullable = false)
    private LocalDateTime createdAt;
-   private Float tax;
+   private BigDecimal taxedAmount;
 
    public Transaction(
            String sender,
            String recipient,
            BigDecimal amount,
            LocalDateTime toFulfilledAt,
-           Float tax
+           BigDecimal taxedAmount
    ){
       LocalDateTime today = LocalDateTime.now();
       if (sender.equals(recipient)) {
@@ -61,10 +61,10 @@ public class Transaction {
          throw new IllegalArgumentException("A data de transferência precisa ser a partir da data de hoje");
       }
       this.toFulfilledAt = toFulfilledAt;
-      if (tax < 0) {
-         throw new IllegalArgumentException("A taxa precisa ser maior que 0");
+      if (taxedAmount.compareTo(amount) < 0 ) {
+         throw new IllegalArgumentException("O valor final taxado precisa ser maior ou igual ao valor do depósito");
       }
-      this.tax = tax;
+      this.taxedAmount = taxedAmount;
       this.createdAt = LocalDateTime.now();
    }
 }
