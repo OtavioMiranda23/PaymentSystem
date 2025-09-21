@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.cglib.core.Local;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -16,16 +15,18 @@ import java.util.UUID;
 @Data
 public class Transaction {
    @Id
-   @GeneratedValue
+   @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
    @NotNull
-   @Column(nullable = false)
-   private String sender;
+   @ManyToOne(fetch = FetchType.LAZY)
+   @JoinColumn(name = "sender_id", nullable = false)
+   private UserApp sender;
 
    @NotNull
-   @Column(nullable = false)
-   private String recipient;
+   @ManyToOne(fetch = FetchType.LAZY)
+   @JoinColumn(name = "recipient_id", nullable = false)
+   private UserApp recipient;
 
    @NotNull
    @Column(nullable = false)
@@ -38,17 +39,19 @@ public class Transaction {
    @NotNull
    @Column(nullable = false)
    private LocalDateTime createdAt;
+
    private BigDecimal taxedAmount;
 
+
    public Transaction(
-           String sender,
-           String recipient,
+           UserApp sender,
+           UserApp recipient,
            BigDecimal amount,
            LocalDateTime toFulfilledAt,
            BigDecimal taxedAmount
    ){
       LocalDateTime today = LocalDateTime.now();
-      if (sender.equals(recipient)) {
+      if (sender.getAccountNumber().equals(recipient.getAccountNumber())) {
          throw new IllegalArgumentException("Não é possível transferir para a mesma conta");
       }
       this.sender = sender;

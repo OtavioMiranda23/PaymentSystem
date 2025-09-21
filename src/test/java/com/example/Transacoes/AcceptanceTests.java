@@ -20,17 +20,59 @@ class AcceptanceTests {
 
 	@Test
 	void createSuccessTransaction() throws URISyntaxException, IOException, InterruptedException, JSONException {
+		String bodyCreateUser = """
+				{
+					"name": "otavio"
+				}
+				""";
+		HttpClient client = HttpClient.newHttpClient();
+		HttpRequest createUserRequest = HttpRequest.newBuilder()
+				.uri(new URI("http://localhost:8080/api/user"))
+				.header("Content-Type", "application/json")
+				.POST(HttpRequest.BodyPublishers.ofString(bodyCreateUser))
+				.build();
+		HttpResponse<String> responseCreateUser = client.send(createUserRequest, HttpResponse.BodyHandlers.ofString());
+		String responseBodyUser = responseCreateUser.body();
+		var jsonResponseUser = new JSONObject(responseBodyUser);
+		String responseUserName = jsonResponseUser.getString("name");
+		assertEquals("otavio", responseUserName);
+		String responseUserAccount = jsonResponseUser.getString("accountNumber");
+		assertEquals(10, responseUserAccount.length());
+		String responseUserId = jsonResponseUser.getString("id");
+		assertNotNull(responseUserId);
+
+		String bodyCreateAnotherUser = """
+        {
+            "name": "joao"
+        }
+        """;
+		HttpRequest createAnotherUserRequest = HttpRequest.newBuilder()
+				.uri(new URI("http://localhost:8080/api/user"))
+				.header("Content-Type", "application/json")
+				.POST(HttpRequest.BodyPublishers.ofString(bodyCreateAnotherUser))
+				.build();
+		HttpResponse<String> responseCreateAnotherUser = client.send(createAnotherUserRequest, HttpResponse.BodyHandlers.ofString());
+		String responseBodyAnotherUser = responseCreateAnotherUser.body();
+		var jsonResponseAnotherUser = new JSONObject(responseBodyAnotherUser);
+		String responseAnotherUserName = jsonResponseAnotherUser.getString("name");
+		assertEquals("joao", responseAnotherUserName);
+		String responseAnotherUserAccount = jsonResponseAnotherUser.getString("accountNumber");
+		assertEquals(10, responseAnotherUserAccount.length());
+		String responseAnotherUserId = jsonResponseAnotherUser.getString("id");
+		assertNotNull(responseAnotherUserId);
+
+
+
 		LocalDateTime today = LocalDateTime.now();
 		var toFulfilledAt = today.plusDays(1);
 		String body = """
 				{
-					"sender": "otavio@gmail.com",
-					"recipient": "joao@gmail.com",
+					"userId": "%s",
+					"recipient": "%s",
 					"amount": "10.00",
 					"toFulfillAt": "%s"
 				}
-				""".formatted(toFulfilledAt);
-		HttpClient client = HttpClient.newHttpClient();
+				""".formatted(responseUserId, responseAnotherUserId, toFulfilledAt);
 		HttpRequest request = HttpRequest.newBuilder()
 				.uri(new URI("http://localhost:8080/api/transactions"))
 				.header("Content-Type", "application/json")
@@ -42,9 +84,9 @@ class AcceptanceTests {
 		String responseId = jsonResponse.getString("id");
 		assertNotNull(responseId);
 		String responseSender = jsonResponse.getString("sender");
-		assertEquals("otavio@gmail.com", responseSender);
+		assertEquals("otavio", responseSender);
 		String responseRecipient = jsonResponse.getString("recipient");
-		assertEquals("joao@gmail.com", responseRecipient);
+		assertEquals("joao", responseRecipient);
 		String responseAmount = jsonResponse.getString("amount");
 		assertEquals(new BigDecimal("10.0"), new BigDecimal(responseAmount));
 		String responseToFulfilledAt =  jsonResponse.getString("toFulfilledAt");
