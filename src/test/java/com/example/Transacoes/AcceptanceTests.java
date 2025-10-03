@@ -1,4 +1,5 @@
 package com.example.Transacoes;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Order;
@@ -105,22 +106,24 @@ class AcceptanceTests {
 		String responseTaxedAmount = jsonResponse.getString("taxedAmount");
 		assertEquals(new BigDecimal("13.325"), new BigDecimal(responseTaxedAmount));
 	}
-//
-//	@Test
-//	void getAllTransactions() throws URISyntaxException, IOException, InterruptedException, JSONException {
-//		HttpClient client = HttpClient.newHttpClient();
-//		URI uri = URI.create(String.format("http://localhost:8080/api/transaction/%s", this.userId));
-//		HttpRequest request = HttpRequest.newBuilder()
-//				.uri(uri)
-//				.header("Content-Type", "application/json")
-//				.GET()
-//				.build();
-//		HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-//		var responseJson = new JSONObject(response.body());
-//		JSONArray transactions = responseJson.getJSONArray("transactions");
-//		assertEquals(1, transactions.length());
-//
-//	}
+
+	@Test
+	void getAllTransactions() throws URISyntaxException, IOException, InterruptedException, JSONException {
+		this.createSuccessTransaction();
+		HttpClient client = HttpClient.newHttpClient();
+		URI uri = URI.create(String.format("http://localhost:8080/api/users/%s/transactions", userId));
+		HttpRequest request = HttpRequest.newBuilder()
+				.uri(uri)
+				.header("Content-Type", "application/json")
+				.GET()
+				.build();
+		HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+		JSONObject responseJson = new JSONObject(response.body());
+		System.out.println(responseJson);
+		JSONArray transactions = responseJson.getJSONArray("data");
+		assertEquals(2, transactions.length());
+
+	}
 
 	@Test
 	void createInvalidTransaction() throws URISyntaxException, IOException, InterruptedException, JSONException {
