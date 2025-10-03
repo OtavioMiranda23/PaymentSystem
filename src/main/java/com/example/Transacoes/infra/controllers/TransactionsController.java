@@ -27,7 +27,22 @@ public class TransactionsController {
         try {
             BigDecimal taxedAmount = calculateTax.execute(transactionDto.amount(), transactionDto.toFulfillAt());
             Transaction transaction = createTransaction.execute(transactionDto, taxedAmount );
-            return ResponseEntity.ok().body(transaction);
+            var transactionResponse = new TransactionResponseDto(
+                    transaction.getId(),
+                    new UserResponseDto(
+                            transaction.getSender().getName(),
+                            transaction.getSender().getAccountNumber()
+                    ),
+                    new UserResponseDto(
+                            transaction.getRecipient().getName(),
+                            transaction.getRecipient().getAccountNumber()
+                    ),
+                    transaction.getAmount(),
+                    transaction.getToFulfilledAt(),
+                    transaction.getCreatedAt(),
+                    transaction.getTaxedAmount()
+            );
+            return ResponseEntity.ok().body(transactionResponse);
         } catch (Exception e) {
             HashMap<String, String> error = new HashMap<>();
             error.put("message", e.getMessage());

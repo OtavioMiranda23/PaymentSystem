@@ -67,8 +67,8 @@ class AcceptanceTests {
 		var toFulfilledAt = today.plusDays(1);
 		String body = """
 				{
-					"userId": "%s",
-					"recipient": "%s",
+					"senderId": "%s",
+					"recipientId": "%s",
 					"amount": "10.00",
 					"toFulfillAt": "%s"
 				}
@@ -83,9 +83,9 @@ class AcceptanceTests {
 		var jsonResponse = new JSONObject(responseBody);
 		String responseId = jsonResponse.getString("id");
 		assertNotNull(responseId);
-		String responseSender = jsonResponse.getString("sender");
+		String responseSender = jsonResponse.getJSONObject("sender").getString("name");
 		assertEquals("otavio", responseSender);
-		String responseRecipient = jsonResponse.getString("recipient");
+		String responseRecipient = jsonResponse.getJSONObject("recipient").getString("name");
 		assertEquals("joao", responseRecipient);
 		String responseAmount = jsonResponse.getString("amount");
 		assertEquals(new BigDecimal("10.0"), new BigDecimal(responseAmount));
