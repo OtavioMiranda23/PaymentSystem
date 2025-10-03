@@ -5,8 +5,7 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 public record TransactionDto (
-    UUID senderId,
-    UUID recipientId,
+    String recipientAccountNumber,
     BigDecimal amount,
     LocalDateTime toFulfillAt
     ) {}

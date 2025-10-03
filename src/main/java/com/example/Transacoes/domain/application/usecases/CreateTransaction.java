@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class CreateTransaction {
@@ -20,12 +21,13 @@ public class CreateTransaction {
     public UserRepository userRepository;
 
     public Transaction execute(
+            UUID userId,
             TransactionDto transactionDto,
             BigDecimal calculatedAmount
     ) {
-        Optional<UserApp> _sender = this.userRepository.findById(transactionDto.senderId());
+        Optional<UserApp> _sender = this.userRepository.findById(userId);
         UserApp sender = _sender.orElseThrow();
-        Optional<UserApp> _recipient = this.userRepository.findById(transactionDto.recipientId());
+        Optional<UserApp> _recipient = this.userRepository.findByAccountNumber(transactionDto.recipientAccountNumber());
         UserApp recipient = _recipient.orElseThrow();
         Transaction transactionRaw = new Transaction(
                 sender,

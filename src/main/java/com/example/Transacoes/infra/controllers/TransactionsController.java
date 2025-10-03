@@ -5,16 +5,14 @@ import com.example.Transacoes.domain.application.usecases.CreateTransaction;
 import com.example.Transacoes.domain.entities.Transaction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.util.HashMap;
+import java.util.UUID;
 
 @RestController()
-@RequestMapping("/api/transactions")
+@RequestMapping("/api/users/{userId}/transactions")
 public class TransactionsController {
     @Autowired
     private CalculateTax calculateTax;
@@ -22,11 +20,17 @@ public class TransactionsController {
     @Autowired
     private CreateTransaction createTransaction;
 
+//    @GetMapping
+//    public  ResponseEntity<?> getAll(@Pa)
+
     @PostMapping
-    public ResponseEntity<?> create(@RequestBody TransactionDto transactionDto) {
+    public ResponseEntity<?> create(
+            @PathVariable UUID userId,
+            @RequestBody TransactionDto transactionDto
+    ) {
         try {
             BigDecimal taxedAmount = calculateTax.execute(transactionDto.amount(), transactionDto.toFulfillAt());
-            Transaction transaction = createTransaction.execute(transactionDto, taxedAmount );
+            Transaction transaction = createTransaction.execute(userId, transactionDto, taxedAmount );
             var transactionResponse = new TransactionResponseDto(
                     transaction.getId(),
                     new UserResponseDto(

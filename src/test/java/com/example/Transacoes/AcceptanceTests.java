@@ -1,6 +1,7 @@
 package com.example.Transacoes;
-
 import org.json.JSONException;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import static org.junit.jupiter.api.Assertions.*;
@@ -17,9 +18,12 @@ import java.time.Month;
 
 @SpringBootTest
 class AcceptanceTests {
+	static String userId;
+	static String anotherUserId;
+	static String anotherUserAccountNumber;
 
-	@Test
-	void createSuccessTransaction() throws URISyntaxException, IOException, InterruptedException, JSONException {
+	@BeforeAll
+	static void createUsers() throws URISyntaxException, IOException, InterruptedException, JSONException {
 		String bodyCreateUser = """
 				{
 					"name": "otavio"
@@ -40,6 +44,7 @@ class AcceptanceTests {
 		assertEquals(10, responseUserAccount.length());
 		String responseUserId = jsonResponseUser.getString("id");
 		assertNotNull(responseUserId);
+		userId = responseUserId;
 
 		String bodyCreateAnotherUser = """
         {
@@ -57,24 +62,28 @@ class AcceptanceTests {
 		String responseAnotherUserName = jsonResponseAnotherUser.getString("name");
 		assertEquals("joao", responseAnotherUserName);
 		String responseAnotherUserAccount = jsonResponseAnotherUser.getString("accountNumber");
+		anotherUserAccountNumber = responseAnotherUserAccount;
 		assertEquals(10, responseAnotherUserAccount.length());
 		String responseAnotherUserId = jsonResponseAnotherUser.getString("id");
 		assertNotNull(responseAnotherUserId);
-
-
-
+		anotherUserId = responseAnotherUserId;
+	}
+	@Test
+	void createSuccessTransaction() throws URISyntaxException, IOException, InterruptedException, JSONException {
+		HttpClient client = HttpClient.newHttpClient();
 		LocalDateTime today = LocalDateTime.now();
 		var toFulfilledAt = today.plusDays(1);
 		String body = """
 				{
-					"senderId": "%s",
-					"recipientId": "%s",
+					"recipientAccountNumber": "%s",
 					"amount": "10.00",
 					"toFulfillAt": "%s"
 				}
-				""".formatted(responseUserId, responseAnotherUserId, toFulfilledAt);
+				""".formatted(anotherUserAccountNumber, toFulfilledAt);
+		URI uri = URI.create(String.format("http://localhost:8080/api/users/%s/transactions",
+				userId));
 		HttpRequest request = HttpRequest.newBuilder()
-				.uri(new URI("http://localhost:8080/api/transactions"))
+				.uri(uri)
 				.header("Content-Type", "application/json")
 				.POST(HttpRequest.BodyPublishers.ofString(body))
 				.build();
@@ -95,31 +104,46 @@ class AcceptanceTests {
 		assertEquals(LocalDateTime.now().toString().split("T")[0], responseCreatedAt.split("T")[0]);
 		String responseTaxedAmount = jsonResponse.getString("taxedAmount");
 		assertEquals(new BigDecimal("13.325"), new BigDecimal(responseTaxedAmount));
-
-
 	}
+//
+//	@Test
+//	void getAllTransactions() throws URISyntaxException, IOException, InterruptedException, JSONException {
+//		HttpClient client = HttpClient.newHttpClient();
+//		URI uri = URI.create(String.format("http://localhost:8080/api/transaction/%s", this.userId));
+//		HttpRequest request = HttpRequest.newBuilder()
+//				.uri(uri)
+//				.header("Content-Type", "application/json")
+//				.GET()
+//				.build();
+//		HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+//		var responseJson = new JSONObject(response.body());
+//		JSONArray transactions = responseJson.getJSONArray("transactions");
+//		assertEquals(1, transactions.length());
+//
+//	}
 
 	@Test
 	void createInvalidTransaction() throws URISyntaxException, IOException, InterruptedException, JSONException {
 		LocalDateTime toFulfilledAt = LocalDateTime.of(2025, Month.DECEMBER, 25, 10, 30, 0, 0);
 		String body = """
 				{
-					"sender": "otavio@gmail.com",
-					"recipient": "joao@gmail.com",
+					"recipientAccountNumber": "%s",
 					"amount": "30.00",
 					"toFulfillAt": "%s"
 				}
-				""".formatted(toFulfilledAt);
+				""".formatted(anotherUserAccountNumber,toFulfilledAt);
 		HttpClient client = HttpClient.newHttpClient();
+		URI uri = URI.create(String.format("http://localhost:8080/api/users/%s/transactions",
+				userId));
 		HttpRequest request = HttpRequest.newBuilder()
-				.uri(new URI("http://localhost:8080/api/transactions"))
+				.uri(uri)
 				.header("Content-Type", "application/json")
 				.POST(HttpRequest.BodyPublishers.ofString(body))
 				.build();
 		HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-		var resonseJson = new JSONObject(response.body());
-		String message = resonseJson.getString("message");
-		System.out.println(message);
+		var responseJson = new JSONObject(response.body());
+		String message = responseJson.getString("message");
+		var expectedMessage = "Transferência não permitida, pois não foi encontrada data aplicável";
+		assertEquals(expectedMessage,message);
 	}
-
 }
